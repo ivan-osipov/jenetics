@@ -19,10 +19,80 @@
  */
 package io.jenetics.ext.util;
 
+import static java.util.Objects.requireNonNull;
+
+import java.util.function.BiFunction;
+
 /**
  * @author <a href="mailto:franz.wilhelmstoetter@gmail.com">Franz Wilhelmstötter</a>
  * @version !__version__!
  * @since !__version__!
  */
-public class HList {
+public abstract class HList<T extends HList<T>> {
+	private HList() {}
+
+	public static final class Nil extends HList<Nil> {
+		private static final Nil NIL = new Nil();
+		private Nil() {}
+	}
+
+	public static final class Cons<E, L extends HList<L>> {
+		private E _e;
+		private L _l;
+
+		private Cons(final E e, final L l) {
+			_e = e;
+			_l = l;
+		}
+
+		public E head() {
+			return _e;
+		}
+
+		public L tail() {
+			return _l;
+		}
+
+	}
+
+	public static final class Append<L, R, LR> {
+		private final BiFunction<L, R, LR> _append;
+
+		private Append(final BiFunction<L, R, LR> f) {
+			_append = requireNonNull(f);
+		}
+
+		public LR append(final L l, final R r) {
+			return _append.apply(l, r);
+		}
+
+		public static <L extends HList<L>> Append<Nil, L, L> append() {
+			return new Append<>((nil, l) -> l);
+		}
+
+		public static <
+			X,
+			A extends HList<A>,
+			B,
+			C extends HList<C>,
+			H extends Append<A, B, C>
+		>
+		Append<Cons<X, A>, B, Cons<X, C>> append(final H h) {
+			return new Append<>((c, l) -> cons(c.head(), h.append(c.tail(), l)));
+		}
+	}
+
+
+	public static Nil nil() {
+		return Nil.NIL;
+	}
+
+	public static <E, L extends HList<L>> Cons<E, L> cons(final E e, final L l) {
+		return new Cons<E, L>(e, l);
+	}
+
+	public static <E> Cons<E, Nil> cons(final E e) {
+		return cons(e, nil());
+	}
+
 }
