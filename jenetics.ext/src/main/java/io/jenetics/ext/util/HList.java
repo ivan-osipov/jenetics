@@ -36,13 +36,13 @@ public abstract class HList<T extends HList<T>> {
 		private Nil() {}
 	}
 
-	public static final class Cons<E, L extends HList<L>> {
-		private E _e;
-		private L _l;
+	public static final class Cons<E, L extends HList<L>> extends HList<Cons<E, L>> {
+		private final E _e;
+		private final L _l;
 
 		private Cons(final E e, final L l) {
 			_e = e;
-			_l = l;
+			_l = requireNonNull(l);
 		}
 
 		public E head() {
@@ -93,6 +93,13 @@ public abstract class HList<T extends HList<T>> {
 
 	public static <E> Cons<E, Nil> cons(final E e) {
 		return cons(e, nil());
+	}
+
+
+
+	public static void main(final String[] args) {
+		final Cons<String, Cons<Integer, Cons<Boolean, Nil>>> foo =
+			cons("foo", cons(123, cons(false)));
 	}
 
 }
